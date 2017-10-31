@@ -1,7 +1,7 @@
 extern crate bytes;
 extern crate tokio_core;
 
-use bytes::BytesMut;
+use bytes::BufMut;
 use bytes::Bytes;
 use std::io;
 use std::net::SocketAddr;
@@ -31,7 +31,7 @@ impl Message {
         unimplemented!()
     }
 
-    fn to_bytes(&self, target: &mut BytesMut) -> io::Result<()> {
+    fn to_bytes<T: BufMut>(&self, target: T) {
         unimplemented!()
     }
 }
@@ -41,22 +41,24 @@ pub enum Attribute {
 }
 
 impl UdpCodec for StunCodec {
-    type In = Message;
-    type Out = Message;
-
-    fn encode(&mut self, msg: Self::Out, buf: &mut Vec<u8>) -> SocketAddr {
-        unimplemented!()
-    }
+    type In = (SocketAddr, Message);
+    type Out = (SocketAddr, Message);
 
     fn decode(&mut self, src: &SocketAddr, buf: &[u8]) -> io::Result<Self::In> {
-        unimplemented!()
+        Message::from_bytes(Bytes::from(buf)).map(|msg| (*src, msg))
+    }
+
+    fn encode(&mut self, (addr, msg): Self::Out, buf: &mut Vec<u8>) -> SocketAddr {
+        msg.to_bytes(buf);
+        addr
     }
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    #[should_panic]
+    fn some_test_here() {
+        unimplemented!()
     }
 }
